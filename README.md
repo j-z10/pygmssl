@@ -20,3 +20,8 @@ python -m pip install pygmssl
 ```
 
 ## 2 Usage
+
+```python3
+import pygmssl
+print(pygmssl.get_gmssl_version_str(), pygmssl.get_gmssl_version_num())
+```
