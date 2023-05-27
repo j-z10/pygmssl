@@ -1,5 +1,6 @@
 from ctypes import *
 from typing import Optional
+
 from ._gm import _gm
 
 SM3_DIGEST_SIZE = 32
@@ -40,7 +41,7 @@ class SM3:
         return self.digest().hex()
 
     @classmethod
-    def hash_with_sm2(cls, data:bytes, pub_key:bytes, id:bytes=None) -> 'SM3':
+    def hash_with_sm2(cls, data: bytes, pub_key: bytes, id: bytes = None) -> 'SM3':
         from .sm2 import SM2
         sm2 = SM2(pub_key=pub_key)
         z = sm2.compute_z(id=id) if id else sm2.compute_z()
@@ -48,20 +49,22 @@ class SM3:
         s3.update(data)
         return s3
 
+
 class _SM3HMACCTX(Structure):
     _fields_ = [
         ('sm3ctx', _SM3CTX),
         ('key', c_uint8 * SM3_BLOCK_SIZE),
     ]
 
+
 class SM3HMAC:
-    def __init__(self, key:bytes, data:bytes|None=None):
+    def __init__(self, key: bytes, data: bytes | None = None):
         self._ctx = _SM3HMACCTX()
         _gm.sm3_hmac_init(byref(self._ctx), c_char_p(key), len(key))
         if data:
             self.update(data)
 
-    def update(self, data:bytes):
+    def update(self, data: bytes):
         buff = (c_uint8 * 4096)()
         for i in range(0, len(data), 4096):
             chunk = data[i:i + 4096]

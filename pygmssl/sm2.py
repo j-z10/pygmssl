@@ -1,6 +1,7 @@
 from ctypes import *
-from .sm3 import _SM3CTX
+
 from ._gm import _gm
+from .sm3 import _SM3CTX
 
 SM2_DEFAULT_ID = b'1234567812345678'
 SM2_MIN_SIGNATURE_SIZE = 8
@@ -19,6 +20,7 @@ class _SM2_KEY(Structure):
         ('pub', _SM2_POINT),
         ('pri', c_uint8 * 32),
     ]
+
 
 class _SM2_SIGN_CTX(Structure):
     _fields_ = [
@@ -57,12 +59,12 @@ class SM2:
     def pri_key(self) -> bytes:
         return bytes(self._sm2_key.pri)
 
-    def compute_z(self, id:bytes=SM2_DEFAULT_ID) -> bytes:
+    def compute_z(self, id: bytes = SM2_DEFAULT_ID) -> bytes:
         z = (c_uint8 * 32)()
         _gm.sm2_compute_z(byref(z), byref(self._sm2_key.pub), c_char_p(id), len(id))
         return bytes(z)
 
-    def sign(self, data:bytes, id:bytes=SM2_DEFAULT_ID) -> bytes:
+    def sign(self, data: bytes, id: bytes = SM2_DEFAULT_ID) -> bytes:
         _sign_ctx = _SM2_SIGN_CTX()
         _gm.sm2_sign_init(byref(_sign_ctx), byref(self._sm2_key), c_char_p(id), len(id))
         buff = (c_uint8 * 4096)()
@@ -75,7 +77,7 @@ class SM2:
         _gm.sm2_sign_finish(byref(_sign_ctx), byref(sigdst), byref(sigdst_len))
         return bytes(sigdst[:sigdst_len.value])
 
-    def verify(self, data:bytes, sig:bytes, id:bytes=SM2_DEFAULT_ID) -> bool:
+    def verify(self, data: bytes, sig: bytes, id: bytes = SM2_DEFAULT_ID) -> bool:
         _verify_ctx = _SM2_SIGN_CTX()
         _gm.sm2_verify_init(byref(_verify_ctx), byref(self._sm2_key), c_char_p(id), len(id))
         buff = (c_uint8 * 4096)()
