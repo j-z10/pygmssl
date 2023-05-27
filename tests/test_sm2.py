@@ -7,6 +7,9 @@ test_pri_key = b'\x87\x95\x84V\xcej\x8cq\xd1\x10\x94\xa7\xb7\x8d\xc1\x9a\x98\xcf
 
 
 class TestSM2(TestCase):
+    def setUp(self) -> None:
+        self.k = SM2(test_pub_key, test_pri_key)
+
     def test_001_base(self):
         k = SM2(test_pub_key, test_pri_key)
         self.assertEqual(k.pub_key, test_pub_key)
@@ -30,3 +33,16 @@ class TestSM2(TestCase):
         self.assertEqual(len(k.pri_key), 32)
         self.assertNotEqual(k.pub_key, b'\x00'*64)
         self.assertNotEqual(k.pri_key, b'\x00'*32)
+
+    def test_005_sm2_sign(self):
+        data = b'hello, world'
+        sig = self.k.sign(data)
+        self.assertFalse(self.k.verify(data + b'\x00', sig))
+        self.assertTrue(self.k.verify(data, sig))
+
+    def test_006_sm2_sign_with_id(self):
+        data = b'hello, world'
+        sig = self.k.sign(data, id=b'123')
+        self.assertFalse(self.k.verify(data, sig))
+        self.assertTrue(self.k.verify(data, sig=sig, id=b'123'))
+        self.assertFalse(self.k.verify(b'\x00' + data, sig=sig, id=b'123'))
