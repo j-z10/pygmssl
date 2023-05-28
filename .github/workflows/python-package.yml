@@ -26,6 +26,11 @@ jobs:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies
       run: |
+        git clone https://github.com/guanzhi/GmSSL.git
+        cd GmSSL && mkdir build && cd build && cmake ..
+        make && make test && sudo make install
+        sudo ldconfig
+        gmssl version
         python -m pip install --upgrade pip
         python -m pip install flake8 pytest
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
