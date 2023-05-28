@@ -1,4 +1,4 @@
-from ctypes import *
+from ctypes import byref, c_uint8, c_size_t, c_uint32, c_uint64, Structure, c_char_p
 from typing import Optional
 
 from ._gm import _gm

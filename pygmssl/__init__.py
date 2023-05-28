@@ -8,4 +8,5 @@ def get_gmssl_version_str() -> str:
 def get_gmssl_version_num() -> str:
     return _gm.gmssl_version_num()
 
-VERSION = __version__  = '0.0.3'
+
+VERSION = __version__ = '0.0.3'

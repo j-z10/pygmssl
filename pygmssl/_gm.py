@@ -5,7 +5,8 @@ from ctypes.util import find_library
 
 libgm = find_library('gmssl')
 if not libgm:
-    warnings.warn("gmssl library not found, you should install GmSSL first.\nhttps://github.com/guanzhi/GmSSL")
+    warnings.warn("gmssl library not found, you should install GmSSL first.\n"
+                  "https://github.com/guanzhi/GmSSL")
     sys.exit(1)
 else:
     _gm = cdll.LoadLibrary(libgm)

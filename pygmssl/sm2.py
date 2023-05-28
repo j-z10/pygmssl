@@ -1,4 +1,4 @@
-from ctypes import *
+from ctypes import byref, c_uint8, c_size_t, Structure, c_char_p
 
 from ._gm import _gm
 from .sm3 import _SM3CTX
