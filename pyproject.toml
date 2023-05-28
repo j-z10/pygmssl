@@ -1,11 +1,13 @@
 [project]
 name = "pygmssl"
-version = "0.0.2"
+dynamic = ["version"]
 authors = [{ name = "Zhang Jie", email = "zhangj_10ujs@foxmail.com" }]
 description = "A Python ctypes GmSSL implementation"
 readme = "README.md"
 requires-python = ">=3.10"
+keywords=["国密", "SM2", "SM3", "SM4"]
 classifiers = [
+    "Development Status :: 2 - Pre-Alpha",
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
@@ -14,3 +16,9 @@ classifiers = [
 [project.urls]
 "Homepage" = "https://github.com/jz10ujs/pygmssl"
 "Bug Tracker" = "https://github.com/jz10ujs/pygmssl/issues"
+
+[tool.setuptools]
+packages = ["pygmssl"]
+
+[tool.setuptools.dynamic]
+version = {attr = "pygmssl.VERSION"}
