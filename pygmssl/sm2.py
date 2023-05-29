@@ -6,6 +6,10 @@ from .sm3 import _SM3CTX
 SM2_DEFAULT_ID = b'1234567812345678'
 SM2_MIN_SIGNATURE_SIZE = 8
 SM2_MAX_SIGNATURE_SIZE = 72
+SM2_MIN_PLAINTEXT_SIZE = 1
+SM2_MAX_PLAINTEXT_SIZE = 255
+SM2_MIN_CIPHERTEXT_SIZE = 45
+SM2_MAX_CIPHERTEXT_SIZE = 366
 
 
 class _SM2_POINT(Structure):
@@ -87,3 +91,23 @@ class SM2:
             _gm.sm2_verify_update(byref(_verify_ctx), byref(buff), len(chunk))
         ret = _gm.sm2_verify_finish(byref(_verify_ctx), c_char_p(sig), len(sig))
         return ret == 1
+
+    def encrypt(self, data:bytes) -> bytes:
+        if len(data) > SM2_MAX_PLAINTEXT_SIZE:
+            raise ValueError('to encrypt data\'s length must <= sm2.SM2_MIN_PLAINTEXT_SIZE')
+        buff = (c_uint8 * SM2_MAX_PLAINTEXT_SIZE)()
+        buff[:len(data)] = data
+        out = (c_uint8 * SM2_MAX_CIPHERTEXT_SIZE)()
+        length = c_size_t()
+        _gm.sm2_encrypt(byref(self._sm2_key), byref(buff), len(data), byref(out), byref(length))
+        return bytes(out[:length.value])
+
+    def decrypt(self, data:bytes) -> bytes:
+        if len(data) > SM2_MAX_CIPHERTEXT_SIZE:
+            raise ValueError('to decrypt data\'s length must <= sm2.SM2_MAX_CIPHERTEXT_SIZE')
+        buff = (c_uint8 * SM2_MAX_CIPHERTEXT_SIZE)()
+        buff[:len(data)] = data
+        out = (c_uint8 * SM2_MAX_PLAINTEXT_SIZE)()
+        length = c_size_t()
+        _gm.sm2_decrypt(byref(self._sm2_key), byref(buff), len(data), byref(out), byref(length))
+        return bytes(out[:length.value])

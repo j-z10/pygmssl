@@ -1,4 +1,5 @@
 from ctypes import byref, c_uint8, c_size_t, c_uint32, Structure, c_char_p
+from enum import Enum
 
 from ._gm import _gm
 
@@ -29,6 +30,7 @@ class _SM4_CBC_CTX(Structure):
         else:
             _gm.sm4_cbc_decrypt_init(byref(self), c_char_p(key), c_char_p(iv))
         self._result: list[bytes] = []
+        self._encrypt = encrypt
 
     def encrypt_update(self, data: bytes):
         outbuf = (c_uint8 * 4196)()
@@ -65,16 +67,20 @@ class _SM4_CBC_CTX(Structure):
         return b''.join(self._result)
 
 
-MOD_CTX_DICT = {
+_MOD_CTX_DICT = {
     'CBC': _SM4_CBC_CTX
 }
 
 
+class MOD(str, Enum):
+    CBC = 'CBC'
+
+
 class SM4:
-    def __init__(self, key: bytes, *, mode: str, iv: bytes):
-        if mode.upper() not in MOD_CTX_DICT:
-            raise ValueError(u'Only support sm4 mod: %s' % MOD_CTX_DICT.keys())
-        self._ctx = MOD_CTX_DICT[mode.upper()]()
+    def __init__(self, key: bytes, *, mode: MOD, iv: bytes):
+        if mode.value.upper() not in _MOD_CTX_DICT:
+            raise ValueError(u'Only support sm4 mod: %s' % _MOD_CTX_DICT.keys())
+        self._ctx = _MOD_CTX_DICT[mode.value.upper()]()
         self.key = key
         self.iv = iv
 

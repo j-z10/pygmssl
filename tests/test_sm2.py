@@ -49,3 +49,14 @@ class TestSM2(TestCase):
         self.assertFalse(self.k.verify(data, sig))
         self.assertTrue(self.k.verify(data, sig=sig, id=b'123'))
         self.assertFalse(self.k.verify(b'\x00' + data, sig=sig, id=b'123'))
+
+    def test_007_sm2_encrypt_and_decrypt(self):
+        data = b'hello, world'
+        self.assertEqual(self.k.decrypt(self.k.encrypt(data)), data)
+
+    def test_008_sm2_encrypt_and_decrypt_check(self):
+        data = b'1' * 1024
+        with self.assertRaises(ValueError):
+            self.k.encrypt(data)
+        with self.assertRaises(ValueError):
+            self.k.decrypt(data)
