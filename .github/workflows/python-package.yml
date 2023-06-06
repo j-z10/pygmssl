@@ -31,6 +31,7 @@ jobs:
         make && make test && sudo make install
         sudo ldconfig
         gmssl version
+        cd ../../
         python -m pip install --upgrade pip
         python -m pip install flake8 pytest
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
