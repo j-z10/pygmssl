@@ -106,6 +106,13 @@ sig = signer2.sign(data, id=b'123') # if not id, id will be sm2.SM2_DEFAULT_ID
 assert signer2.verify(data, sig, id=b'123') == True
 assert signer2.verify(data + b'\x00', sig, id=b'123') == False  # libgmssl will print some fail info
 
+# 如果Java sign可能给出的不是asn1 der格式的sig, 签名和验签的时候指定asn1=True, 将会获取签名后的64位实际数据
+zk = SM2(pub_key=test_pub_key, pri_key=test_pri_key)
+data = b'hello, world'
+sig = zk.sign(data, id=b'123', asn1=True)
+assert len(sig) == 64
+assert zk.verify(data, sig, id=b'123', asn1=True) == True
+
 # SM2 encrypt and decrypt, data's length <= sm2.SM2_MAX_PLAINTEXT_SIZE
 en = SM2(pub_key=test_pub_key)
 data = b'hello, world'

@@ -5,6 +5,7 @@ authors = [{ name = "Zhang Jie", email = "zhangj_10ujs@foxmail.com" }]
 description = "A Python ctypes GmSSL implementation"
 readme = "README.md"
 requires-python = ">=3.10"
+dependencies = ["pycryptodomex>=3.17"]
 keywords=["国密", "SM2", "SM3", "SM4"]
 classifiers = [
     "Development Status :: 2 - Pre-Alpha",

@@ -1,5 +1,7 @@
 from ctypes import byref, c_uint8, c_size_t, Structure, c_char_p
 
+from Cryptodome.Util.asn1 import DerSequence
+
 from ._gm import _gm
 from .sm3 import _SM3CTX
 
@@ -68,7 +70,7 @@ class SM2:
         _gm.sm2_compute_z(byref(z), byref(self._sm2_key.pub), c_char_p(id), len(id))
         return bytes(z)
 
-    def sign(self, data: bytes, id: bytes = SM2_DEFAULT_ID) -> bytes:
+    def sign(self, data: bytes, id: bytes = SM2_DEFAULT_ID, asn1: bool = False) -> bytes:
         _sign_ctx = _SM2_SIGN_CTX()
         _gm.sm2_sign_init(byref(_sign_ctx), byref(self._sm2_key), c_char_p(id), len(id))
         buff = (c_uint8 * 4096)()
@@ -79,9 +81,23 @@ class SM2:
         sigdst = (c_uint8 * SM2_MAX_SIGNATURE_SIZE)()
         sigdst_len = c_size_t()
         _gm.sm2_sign_finish(byref(_sign_ctx), byref(sigdst), byref(sigdst_len))
-        return bytes(sigdst[:sigdst_len.value])
+        sig = bytes(sigdst[:sigdst_len.value])
+        if asn1:
+            _k = DerSequence()
+            _k.decode(sig)
+            r, s = _k[0], _k[1]
+            sig = r.to_bytes(32, 'big') + s.to_bytes(32, 'big')
+        return sig
 
-    def verify(self, data: bytes, sig: bytes, id: bytes = SM2_DEFAULT_ID) -> bool:
+    def verify(self, data: bytes, sig: bytes, id: bytes = SM2_DEFAULT_ID, asn1: bool = False) -> bool:
+        if len(sig) == 64:
+            if not asn1:
+                raise ValueError('when sig is 64 bytes, ans1 flag must be true')
+            # asn1 der格式的, 通常是JAVA搞过来的
+            _k = DerSequence()
+            _k.append(int.from_bytes(sig[:32], 'big'))
+            _k.append(int.from_bytes(sig[32:], 'big'))
+            sig = _k.encode()
         _verify_ctx = _SM2_SIGN_CTX()
         _gm.sm2_verify_init(byref(_verify_ctx), byref(self._sm2_key), c_char_p(id), len(id))
         buff = (c_uint8 * 4096)()

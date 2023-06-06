@@ -60,3 +60,15 @@ class TestSM2(TestCase):
             self.k.encrypt(data)
         with self.assertRaises(ValueError):
             self.k.decrypt(data)
+
+    def test_009_sm2_sign_with_asn1(self):
+        data = b'hello, world'
+        sig = self.k.sign(data, asn1=True)
+        self.assertFalse(self.k.verify(data + b'\x00', sig, asn1=True))
+        self.assertTrue(self.k.verify(data, sig, asn1=True))
+
+    def test_010_sm2_sign_with_id_asn1(self):
+        data = b'hello, world'
+        sig = self.k.sign(data, id=b'test', asn1=True)
+        self.assertFalse(self.k.verify(data + b'\x00', sig, id=b'test', asn1=True))
+        self.assertTrue(self.k.verify(data, sig, id=b'test', asn1=True))
