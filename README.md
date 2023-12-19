@@ -1,3 +1,4 @@
+[![codecov](https://codecov.io/gh/JZ10UJS/pygmssl/graph/badge.svg?token=PS29GCO00T)](https://codecov.io/gh/JZ10UJS/pygmssl)
 # pygmssl
 A Python ctypes GmSSL implementation
 =======
