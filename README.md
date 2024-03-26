@@ -1,6 +1,6 @@
 [![codecov](https://codecov.io/gh/j-z10/pygmssl/graph/badge.svg?token=PS29GCO00T)](https://codecov.io/gh/j-z10/pygmssl)
 # pygmssl
-A Python ctypes GmSSL implementation
+A Python ctypes [GmSSL](https://github.com/guanzhi/GmSSL) implementation
 =======
 
 ## INSTALL
