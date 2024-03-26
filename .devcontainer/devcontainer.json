@@ -1,0 +1,8 @@
+{
+	"name": "PI Python",
+	"dockerComposeFile": "docker-compose.yml",
+	"service": "gmssl",
+	"workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+	"updateContentCommand": "sh .devcontainer/update.sh",
+	"postAttachCommand": "sh .devcontainer/post-attach.sh"
+}

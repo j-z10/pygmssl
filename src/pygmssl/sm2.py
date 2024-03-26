@@ -1,9 +1,11 @@
-from ctypes import byref, c_uint8, c_size_t, Structure, c_char_p
+from ctypes import byref, c_uint8, c_size_t, Structure, c_char_p, c_void_p
+import tempfile
 
 from Cryptodome.Util.asn1 import DerSequence
 
-from ._gm import _gm
+from ._gm import _gm, libc
 from .sm3 import _SM3CTX
+from .exceptions import GmSSLException
 
 SM2_DEFAULT_ID = b'1234567812345678'
 SM2_MIN_SIGNATURE_SIZE = 8
@@ -108,7 +110,7 @@ class SM2:
         ret = _gm.sm2_verify_finish(byref(_verify_ctx), c_char_p(sig), len(sig))
         return ret == 1
 
-    def encrypt(self, data:bytes) -> bytes:
+    def encrypt(self, data: bytes) -> bytes:
         if len(data) > SM2_MAX_PLAINTEXT_SIZE:
             raise ValueError('to encrypt data\'s length must <= sm2.SM2_MIN_PLAINTEXT_SIZE')
         buff = (c_uint8 * SM2_MAX_PLAINTEXT_SIZE)()
@@ -118,7 +120,7 @@ class SM2:
         _gm.sm2_encrypt(byref(self._sm2_key), byref(buff), len(data), byref(out), byref(length))
         return bytes(out[:length.value])
 
-    def decrypt(self, data:bytes) -> bytes:
+    def decrypt(self, data: bytes) -> bytes:
         if len(data) > SM2_MAX_CIPHERTEXT_SIZE:
             raise ValueError('to decrypt data\'s length must <= sm2.SM2_MAX_CIPHERTEXT_SIZE')
         buff = (c_uint8 * SM2_MAX_CIPHERTEXT_SIZE)()
@@ -127,3 +129,51 @@ class SM2:
         length = c_size_t()
         _gm.sm2_decrypt(byref(self._sm2_key), byref(buff), len(data), byref(out), byref(length))
         return bytes(out[:length.value])
+
+    def export_encrypted_private_key_to_pem(self, password: bytes) -> bytes:
+        with tempfile.NamedTemporaryFile(delete=False) as tmp_f:
+            libc.fopen.restype = c_void_p
+            fp = libc.fopen(tmp_f.name.encode('utf8'), 'wb')
+            if _gm.sm2_private_key_info_encrypt_to_pem(byref(self._sm2_key), c_char_p(password), c_void_p(fp)) != 1:
+                raise GmSSLException('libgmssl inner error')
+            libc.fclose(c_void_p(fp))
+            with open(tmp_f.name, 'rb') as f:
+                res = f.read()
+            return res
+
+    def export_public_key_to_pem(self) -> bytes:
+        with tempfile.NamedTemporaryFile(delete=False) as tmp_f:
+            libc.fopen.restype = c_void_p
+            fp = libc.fopen(tmp_f.name.encode('utf8'), 'wb')
+            if _gm.sm2_public_key_info_to_pem(byref(self._sm2_key), c_void_p(fp)) != 1:
+                raise GmSSLException('libgmssl inner error')
+            libc.fclose(c_void_p(fp))
+            with open(tmp_f.name, 'rb') as f:
+                res = f.read()
+            return res
+
+    @classmethod
+    def import_private_from_pem(cls, pem: bytes, password: bytes) -> 'SM2':
+        with tempfile.NamedTemporaryFile(delete=False) as tmp_f:
+            with open(tmp_f.name, 'wb') as f:
+                f.write(pem)
+            libc.fopen.restype = c_void_p
+            fp = libc.fopen(tmp_f.name.encode('utf8'), 'rb')
+            obj = SM2()
+            if _gm.sm2_private_key_info_decrypt_from_pem(byref(obj._sm2_key), c_char_p(password), c_void_p(fp)) != 1:
+                raise GmSSLException('Invalid Password')
+            libc.fclose(c_void_p(fp))
+            return obj
+
+    @classmethod
+    def import_public_from_pem(cls, pem: bytes) -> 'SM2':
+        with tempfile.NamedTemporaryFile(delete=False) as tmp_f:
+            with open(tmp_f.name, 'wb') as f:
+                f.write(pem)
+            libc.fopen.restype = c_void_p
+            fp = libc.fopen(tmp_f.name.encode('utf8'), 'rb')
+            obj = SM2()
+            if _gm.sm2_public_key_info_from_pem(byref(obj._sm2_key), c_void_p(fp)) != 1:
+                raise GmSSLException('Invalid Public Key')
+            libc.fclose(c_void_p(fp))
+            return obj

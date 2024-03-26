@@ -41,7 +41,7 @@ class SM3:
         return self.digest().hex()
 
     @classmethod
-    def hash_with_sm2(cls, data: bytes, pub_key: bytes, id: bytes = None) -> 'SM3':
+    def hash_with_sm2(cls, data: bytes, pub_key: bytes, id: bytes | None = None) -> 'SM3':
         from .sm2 import SM2
         sm2 = SM2(pub_key=pub_key)
         z = sm2.compute_z(id=id) if id else sm2.compute_z()
