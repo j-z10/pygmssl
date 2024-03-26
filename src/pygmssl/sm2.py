@@ -5,7 +5,6 @@ from Cryptodome.Util.asn1 import DerSequence
 
 from ._gm import _gm, libc
 from .sm3 import _SM3CTX
-from .exceptions import GmSSLException
 
 SM2_DEFAULT_ID = b'1234567812345678'
 SM2_MIN_SIGNATURE_SIZE = 8
@@ -134,8 +133,7 @@ class SM2:
         with tempfile.NamedTemporaryFile(delete=False) as tmp_f:
             libc.fopen.restype = c_void_p
             fp = libc.fopen(tmp_f.name.encode('utf8'), 'wb')
-            if _gm.sm2_private_key_info_encrypt_to_pem(byref(self._sm2_key), c_char_p(password), c_void_p(fp)) != 1:
-                raise GmSSLException('libgmssl inner error')
+            assert _gm.sm2_private_key_info_encrypt_to_pem(byref(self._sm2_key), c_char_p(password), c_void_p(fp)) == 1
             libc.fclose(c_void_p(fp))
             with open(tmp_f.name, 'rb') as f:
                 res = f.read()
@@ -145,8 +143,7 @@ class SM2:
         with tempfile.NamedTemporaryFile(delete=False) as tmp_f:
             libc.fopen.restype = c_void_p
             fp = libc.fopen(tmp_f.name.encode('utf8'), 'wb')
-            if _gm.sm2_public_key_info_to_pem(byref(self._sm2_key), c_void_p(fp)) != 1:
-                raise GmSSLException('libgmssl inner error')
+            assert _gm.sm2_public_key_info_to_pem(byref(self._sm2_key), c_void_p(fp)) == 1
             libc.fclose(c_void_p(fp))
             with open(tmp_f.name, 'rb') as f:
                 res = f.read()
@@ -160,8 +157,7 @@ class SM2:
             libc.fopen.restype = c_void_p
             fp = libc.fopen(tmp_f.name.encode('utf8'), 'rb')
             obj = SM2()
-            if _gm.sm2_private_key_info_decrypt_from_pem(byref(obj._sm2_key), c_char_p(password), c_void_p(fp)) != 1:
-                raise GmSSLException('Invalid Password')
+            assert _gm.sm2_private_key_info_decrypt_from_pem(byref(obj._sm2_key), c_char_p(password), c_void_p(fp)) == 1
             libc.fclose(c_void_p(fp))
             return obj
 
@@ -173,7 +169,6 @@ class SM2:
             libc.fopen.restype = c_void_p
             fp = libc.fopen(tmp_f.name.encode('utf8'), 'rb')
             obj = SM2()
-            if _gm.sm2_public_key_info_from_pem(byref(obj._sm2_key), c_void_p(fp)) != 1:
-                raise GmSSLException('Invalid Public Key')
+            assert _gm.sm2_public_key_info_from_pem(byref(obj._sm2_key), c_void_p(fp)) == 1
             libc.fclose(c_void_p(fp))
             return obj
