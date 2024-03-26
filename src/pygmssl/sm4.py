@@ -78,8 +78,6 @@ class MOD(str, Enum):
 
 class SM4:
     def __init__(self, key: bytes, *, mode: MOD, iv: bytes):
-        if mode.value.upper() not in _MOD_CTX_DICT:
-            raise ValueError(u'Only support sm4 mod: %s' % _MOD_CTX_DICT.keys())
         self._ctx = _MOD_CTX_DICT[mode.value.upper()]()
         self.key = key
         self.iv = iv
