@@ -5,7 +5,7 @@ A Python ctypes [GmSSL](https://github.com/guanzhi/GmSSL)v3.1.1 implementation
 =======
 
 ## INSTALL
-### install GmSSL
+### install GmSSLv3.1.1
 ```bash
 git clone https://github.com/guanzhi/GmSSL.git
 cd GmSSL && git checkout tags/v3.1.1
