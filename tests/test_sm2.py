@@ -84,7 +84,7 @@ class TestSM2(TestCase):
 
         assert new_obj.pub_key != b'\x00' * 64
         assert new_obj.pub_key == obj.pub_key
-    
+
     def test_pub_pem_export_and_import(self):
         obj = SM2.generate_new_pair()
         assert obj.pub_key != b'\x00' * 64
