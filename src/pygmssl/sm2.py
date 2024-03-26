@@ -16,7 +16,6 @@ SM2_MIN_CIPHERTEXT_SIZE = 45
 SM2_MAX_CIPHERTEXT_SIZE = 366
 
 
-
 class _SM2_POINT(Structure):
     _fields_ = [
         ('x', c_uint8 * 32),
@@ -72,7 +71,7 @@ class SM2:
         z = (c_uint8 * 32)()
         _gm.sm2_compute_z(byref(z), byref(self._sm2_key.pub), c_char_p(id), len(id))
         return bytes(z)
-    
+
     def sign(self, data: bytes, id: bytes = SM2_DEFAULT_ID, asn1: bool = False) -> bytes:
         _sign_ctx = _SM2_SIGN_CTX()
         _gm.sm2_sign_init(byref(_sign_ctx), byref(self._sm2_key), c_char_p(id), len(id))
@@ -141,7 +140,7 @@ class SM2:
             with open(tmp_f.name, 'rb') as f:
                 res = f.read()
             return res
-    
+
     def export_public_key_to_pem(self) -> bytes:
         with tempfile.NamedTemporaryFile(delete=False) as tmp_f:
             libc.fopen.restype = c_void_p

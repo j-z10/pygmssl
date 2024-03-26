@@ -1,0 +1,17 @@
+{
+	"recommendations": [
+		"mikoz.autoflake-extension",
+		"ms-python.autopep8",
+		"ms-python.flake8",
+		"ms-python.isort",
+		"ms-python.python",
+		"ms-python.vscode-pylance",
+		"tommorris.mako",
+		"tamasfe.even-better-toml",
+		"github.copilot",
+		"streetsidesoftware.code-spell-checker"
+	],
+	"unwantedRecommendations": [
+		"ms-python.pylint"
+	]
+}

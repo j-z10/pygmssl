@@ -3,6 +3,7 @@ from .sm2 import SM2
 from .sm3 import SM3
 from .sm4 import SM4
 
+
 def get_gmssl_version_str() -> str:
     return _gm.gmssl_version_str().decode('utf-8')
 

@@ -4,10 +4,10 @@ from ctypes import cdll, c_char_p
 from ctypes.util import find_library
 
 if sys.platform == 'win32':
-	libc = cdll.LoadLibrary(find_library('msvcrt'))
+    libc = cdll.LoadLibrary(find_library('msvcrt'))
 else:
-	libc = cdll.LoadLibrary(find_library('c'))
-      
+    libc = cdll.LoadLibrary(find_library('c'))
+
 libgm = find_library('gmssl')
 
 if not libgm:
