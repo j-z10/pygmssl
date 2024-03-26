@@ -72,3 +72,24 @@ class TestSM2(TestCase):
         sig = self.k.sign(data, id=b'test', asn1=True)
         self.assertFalse(self.k.verify(data + b'\x00', sig, id=b'test', asn1=True))
         self.assertTrue(self.k.verify(data, sig, id=b'test', asn1=True))
+
+    def test_private_pem_export_and_import(self):
+        password = b'test-123-456'
+        obj = SM2.generate_new_pair()
+        assert obj.pub_key != b'\x00' * 64
+        assert obj.pri_key != b'\x00' * 32
+        new_obj = SM2.import_private_from_pem(obj.export_encrypted_private_key_to_pem(password), password)
+        assert new_obj.pri_key != b'\x00' * 32
+        assert new_obj.pri_key == obj.pri_key
+
+        assert new_obj.pub_key != b'\x00' * 64
+        assert new_obj.pub_key == obj.pub_key
+    
+    def test_pub_pem_export_and_import(self):
+        obj = SM2.generate_new_pair()
+        assert obj.pub_key != b'\x00' * 64
+        assert obj.pri_key != b'\x00' * 32
+        new_obj = SM2.import_public_from_pem(obj.export_public_key_to_pem())
+        assert new_obj.pri_key == b'\x00' * 32
+        assert new_obj.pub_key != b'\x00' * 64
+        assert new_obj.pub_key == obj.pub_key

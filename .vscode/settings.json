@@ -1,0 +1,15 @@
+{
+    "[python]": {
+        "editor.defaultFormatter": "ms-python.autopep8",
+        "editor.formatOnSave": true
+    },
+    "editor.codeActionsOnSave": {
+        "source.organizeImports": "explicit",
+        "source.fixAll.pylance": "explicit",
+        "source.unusedImports": "explicit"
+    },
+    "cSpell.words": [
+        "devcontainer",
+        "gmssl"
+    ]
+}

@@ -1,0 +1,2 @@
+class GmSSLException(Exception):
+    pass
