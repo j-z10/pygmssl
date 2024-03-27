@@ -1,47 +1,22 @@
-[project]
+[tool.poetry]
 name = "pygmssl"
-dynamic = ["version"]
-authors = [{ name = "Zhang Jie", email = "zhangj_10ujs@foxmail.com" }]
-description = "A Python ctypes GmSSL implementation"
+version = "0.1.0"
+description = "A Python ctypes implementation of GmSSLv3.1.1"
+license = "MIT"
+authors = ["Zhang Jie <zhangj_10ujs@foxmail.com>"]
+maintainers = ["Zhang Jie <zhangj_10ujs@foxmail.com>"]
 readme = "README.md"
-requires-python = ">=3.10"
-dependencies = ["pycryptodomex>=3.17"]
-keywords=["国密", "SM2", "SM3", "SM4"]
+homepage = "https://github.com/j-z10/pygmssl"
+keywords=["国密", "GmSSL", "gmssl", "sm2", "sm3", "sm4"]
 classifiers = [
-    "Development Status :: 2 - Pre-Alpha",
+    "Development Status :: 3 - Alpha",
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
 ]
-
-[project.urls]
-"Homepage" = "https://github.com/jz10ujs/pygmssl"
-"Bug Tracker" = "https://github.com/jz10ujs/pygmssl/issues"
-
-[tool.setuptools]
-packages = ["pygmssl"]
-
-[tool.setuptools.dynamic]
-version = {attr = "pygmssl.VERSION"}
-
-[tool.autopep8]
-indent_size = 4
-max_line_length = 120
-ignore = ["E121", "W6"]
-aggressive = 3
-# in-place = true
-# recursive = true
-
-[tool.isort]
-max_line_length = 120
-
-[tool.poetry]
-name = "pygmssl"
-version = "0.1.0"
-description = "GmSSL in python ctypes"
-authors = ["Zhang Jie <zhangj_10ujs@foxmail.com>"]
-license = "GPLv3"
-readme = "README.md"
+packages = [
+    { include = "pygmssl", from = "src" },
+]
 
 [tool.poetry.dependencies]
 python = "^3.11"
@@ -57,3 +32,14 @@ pytest-cov = "^5.0.0"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.autopep8]
+indent_size = 4
+max_line_length = 120
+ignore = ["E121", "W6"]
+aggressive = 3
+# in-place = true
+# recursive = true
+
+[tool.isort]
+max_line_length = 120
