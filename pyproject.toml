@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pygmssl"
-version = "0.1.1"
+version = "0.1.2"
 description = "A Python ctypes implementation of GmSSLv3.1.1"
 license = "MIT"
 authors = ["Zhang Jie <zhangj_10ujs@foxmail.com>"]
