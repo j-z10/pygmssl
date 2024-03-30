@@ -1,9 +1,11 @@
-from ctypes import byref, c_uint8, c_size_t, Structure, c_char_p, c_void_p
+import base64
+from ctypes import byref, c_uint8, c_size_t, Structure, c_char_p, pointer
 import tempfile
+import os
 
 from Cryptodome.Util.asn1 import DerSequence
 
-from ._gm import _gm, libc
+from ._gm import _gm, libc, win32
 from .sm3 import _SM3CTX
 
 SM2_DEFAULT_ID = b'1234567812345678'
@@ -129,46 +131,127 @@ class SM2:
         _gm.sm2_decrypt(byref(self._sm2_key), byref(buff), len(data), byref(out), byref(length))
         return bytes(out[:length.value])
 
-    def export_encrypted_private_key_to_pem(self, password: bytes) -> bytes:
-        with tempfile.NamedTemporaryFile(delete=False) as tmp_f:
-            libc.fopen.restype = c_void_p
-            fp = libc.fopen(tmp_f.name.encode('utf8'), 'wb')
-            assert _gm.sm2_private_key_info_encrypt_to_pem(byref(self._sm2_key), c_char_p(password), c_void_p(fp)) == 1
-            libc.fclose(c_void_p(fp))
-            with open(tmp_f.name, 'rb') as f:
+    def _export_encrypted_pri_to_der(self, password: bytes) -> bytes:
+        buff = (c_uint8 * 4096)()
+        length = c_size_t()
+        _gm.sm2_private_key_info_encrypt_to_der(byref(self._sm2_key), password, byref(pointer(buff)), byref(length))
+        return bytes(buff[:length.value])
+
+    def _export_pub_to_der(self) -> bytes:
+        buff = (c_uint8 * 4096)()
+        length = c_size_t()
+        _gm.sm2_public_key_info_to_der(byref(self._sm2_key), byref(pointer(buff)), byref(length))
+        return bytes(buff[:length.value])
+
+    def _nix_export_private_key_to_encrypted_pem(self, password: bytes) -> bytes:
+        with tempfile.NamedTemporaryFile(delete=False) as _tmp_f:
+            tmp_f_name = _tmp_f.name
+            fp = libc.fopen(tmp_f_name.encode('utf8'), b'wb')
+
+            assert _gm.sm2_private_key_info_encrypt_to_pem(byref(self._sm2_key), c_char_p(password), fp) == 1
+            libc.fclose(fp)
+            with open(tmp_f_name, 'rb') as f:
                 res = f.read()
             return res
 
-    def export_public_key_to_pem(self) -> bytes:
-        with tempfile.NamedTemporaryFile(delete=False) as tmp_f:
-            libc.fopen.restype = c_void_p
-            fp = libc.fopen(tmp_f.name.encode('utf8'), 'wb')
-            assert _gm.sm2_public_key_info_to_pem(byref(self._sm2_key), c_void_p(fp)) == 1
-            libc.fclose(c_void_p(fp))
-            with open(tmp_f.name, 'rb') as f:
+    def _win_export_private_key_to_encrypted_pem(self, password: bytes) -> bytes:
+        der = self._export_encrypted_pri_to_der(password)
+        return self._pem_write(der, 'ENCRYPTED PRIVATE KEY')
+
+    def _nix_export_public_key_to_pem(self) -> bytes:
+        with tempfile.NamedTemporaryFile(delete=False) as _tmp_f:
+            tmp_f_name = _tmp_f.name
+            fp = libc.fopen(tmp_f_name.encode('utf8'), b'wb')
+            assert _gm.sm2_public_key_info_to_pem(byref(self._sm2_key), fp) == 1
+            libc.fclose(fp)
+            with open(tmp_f_name, 'rb') as f:
                 res = f.read()
             return res
 
+    def _win_export_public_key_to_pem(self) -> bytes:
+        pub_der = self._export_pub_to_der()
+        return self._pem_write(pub_der, 'PUBLIC KEY')
+
+    def _pem_write(self, der: bytes, name: str) -> bytes:
+        data = base64.b64encode(der).decode('utf8')
+        prefix = f'-----BEGIN {name}-----'
+        suffix = f'-----END {name}-----'
+        tmp: list[str] = [prefix]
+        for i in range(0, len(data), 64):
+            chunk = data[i:i + 64]
+            tmp.append(chunk)
+        tmp.append(suffix)
+        return ''.join(_line + os.linesep for _line in tmp).encode('utf8')
+
     @classmethod
-    def import_private_from_pem(cls, pem: bytes, password: bytes) -> 'SM2':
-        with tempfile.NamedTemporaryFile(delete=False) as tmp_f:
-            with open(tmp_f.name, 'wb') as f:
+    def _nix_import_private_key_from_encrypted_pem(cls, pem: bytes, password: bytes) -> 'SM2':
+        with tempfile.NamedTemporaryFile(delete=False) as _tmp_f:
+            tmp_f_name = _tmp_f.name
+            with open(tmp_f_name, 'wb') as f:
                 f.write(pem)
-            libc.fopen.restype = c_void_p
-            fp = libc.fopen(tmp_f.name.encode('utf8'), 'rb')
+            fp = libc.fopen(tmp_f_name.encode('utf8'), b'rb')
             obj = SM2()
-            assert _gm.sm2_private_key_info_decrypt_from_pem(byref(obj._sm2_key), c_char_p(password), c_void_p(fp)) == 1
-            libc.fclose(c_void_p(fp))
+            assert _gm.sm2_private_key_info_decrypt_from_pem(byref(obj._sm2_key), c_char_p(password), fp) == 1
+            libc.fclose(fp)
             return obj
 
     @classmethod
-    def import_public_from_pem(cls, pem: bytes) -> 'SM2':
-        with tempfile.NamedTemporaryFile(delete=False) as tmp_f:
-            with open(tmp_f.name, 'wb') as f:
+    def _nix_import_public_key_from_pem(cls, pem: bytes) -> 'SM2':
+        with tempfile.NamedTemporaryFile(delete=False) as _tmp_f:
+            tmp_f_name = _tmp_f.name
+            with open(tmp_f_name, 'wb') as f:
                 f.write(pem)
-            libc.fopen.restype = c_void_p
-            fp = libc.fopen(tmp_f.name.encode('utf8'), 'rb')
+            fp = libc.fopen(tmp_f_name.encode('utf8'), b'rb')
             obj = SM2()
-            assert _gm.sm2_public_key_info_from_pem(byref(obj._sm2_key), c_void_p(fp)) == 1
-            libc.fclose(c_void_p(fp))
+            assert _gm.sm2_public_key_info_from_pem(byref(obj._sm2_key), fp) == 1
+            libc.fclose(fp)
             return obj
+
+    @staticmethod
+    def _pem_read(pem: str, name: str) -> bytes:
+        tmp = pem.splitlines()
+        prefix = f'-----BEGIN {name}-----'
+        suffix = f'-----END {name}-----'
+        assert tmp[0] == prefix
+        assert tmp[-1] == suffix
+        mid = ''.join(tmp[1:-1])
+        return base64.b64decode((mid + ('=' * (-len(mid) % 4))).encode())
+
+    @classmethod
+    def _win_import_private_key_from_encrypted_pem(cls, pem: bytes, password: bytes) -> 'SM2':
+        der_data = cls._pem_read(pem.decode('utf8'), 'ENCRYPTED PRIVATE KEY')
+        obj = SM2()
+        attr = (c_uint8 * 4096)()
+        attr_len = c_size_t()
+        p = pointer(attr)
+        buf = (c_uint8 * 4096)()
+        buf[:len(der_data)] = der_data
+        buflen = c_size_t(len(der_data))
+        cp = pointer(buf)
+        assert _gm.sm2_private_key_info_decrypt_from_der(byref(obj._sm2_key), byref(
+            p), byref(attr_len), password, byref(cp), byref(buflen)) == 1
+        assert buflen.value == 0
+        return obj
+
+    @classmethod
+    def _win_import_public_key_from_pem(cls, pem: bytes) -> 'SM2':
+        der_data = cls._pem_read(pem.decode('utf8'), 'PUBLIC KEY')
+        obj = SM2()
+        buf = (c_uint8 * 4096)()
+        buf[:len(der_data)] = der_data
+        vlen = c_size_t(len(der_data))
+        cp = pointer(buf)
+        assert _gm.sm2_public_key_info_from_der(byref(obj._sm2_key), byref(cp), byref(vlen)) == 1
+        assert vlen.value == 0
+        return obj
+
+    if win32:
+        export_public_key_to_pem = _win_export_public_key_to_pem
+        export_private_key_to_encrypted_pem = _win_export_private_key_to_encrypted_pem
+        import_public_key_from_pem = _win_import_public_key_from_pem
+        import_private_key_from_encrypted_pem = _win_import_private_key_from_encrypted_pem
+    else:
+        export_public_key_to_pem = _nix_export_public_key_to_pem
+        export_private_key_to_encrypted_pem = _nix_export_private_key_to_encrypted_pem
+        import_public_key_from_pem = _nix_import_public_key_from_pem
+        import_private_key_from_encrypted_pem = _nix_import_private_key_from_encrypted_pem
