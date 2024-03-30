@@ -92,8 +92,9 @@ class TestSM2(TestCase):
         assert obj.pri_key != b'\x00' * 32
         pem = obj.export_public_key_to_pem()
         new_obj = SM2.import_public_key_from_pem(pem)
-        assert new_obj.pri_key == b'\x00' * 32
-        assert new_obj.pub_key != b'\x00' * 64
+        with self.assertRaises(ValueError):
+            new_obj.pri_key
+        assert new_obj.pub_key
         assert new_obj.pub_key == obj.pub_key
 
     def test_102_error_import_private_pem(self):
