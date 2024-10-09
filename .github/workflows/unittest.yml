@@ -51,10 +51,14 @@ jobs:
       run: |
         mkdir build && cd build 
         cmake .. && make && make test && sudo make install
-        if [[ "$OSTYPE" == "darwin"* ]]; then
+        if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+            echo "Running ldconfig..."
+            sudo ldconfig
+        elif [[ "$OSTYPE" == "darwin"* ]]; then
+            echo "Setting up DYLD_LIBRARY_PATH..."
+            export DYLD_LIBRARY_PATH=/usr/local/lib:$DYLD_LIBRARY_PATH
             echo "Running gmssl version..."
-            which gmssl
-            gmssl version || echo "gmssl not found"
+            gmssl version
         fi
     - name: Add nmake on windows
       if: ${{ startsWith(matrix.os, 'windows') }}
