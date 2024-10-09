@@ -52,8 +52,10 @@ jobs:
         mkdir build && cd build 
         cmake .. && make && make test && sudo make install
         if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+            echo "ldconfig..."
             sudo ldconfig
         elif [[ "$OSTYPE" == "darwin"* ]]; then
+            echo "updating dyld shared cache..."
             sudo update_dyld_shared_cache
         fi
     - name: Add nmake on windows
