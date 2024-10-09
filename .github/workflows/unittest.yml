@@ -52,9 +52,13 @@ jobs:
         mkdir build && cd build 
         cmake .. && make && make test && sudo make install
         if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+            echo "Running ldconfig..."
             sudo ldconfig
         elif [[ "$OSTYPE" == "darwin"* ]]; then
-            sudo update_dyld_shared_cache
+            echo "Setting up DYLD_LIBRARY_PATH..."
+            export DYLD_LIBRARY_PATH=/usr/local/lib:$DYLD_LIBRARY_PATH
+            echo "Running gmssl version..."
+            gmssl version
         fi
     - name: Add nmake on windows
       if: ${{ startsWith(matrix.os, 'windows') }}
@@ -67,6 +71,9 @@ jobs:
         mkdir build && cd build
         cmake .. -G "NMake Makefiles"
         nmake && nmake test && nmake install
+    - name: Set DYLD_LIBRARY_PATH on MacOS
+      if: startsWith(matrix.os, 'macos')
+      run: echo "DYLD_LIBRARY_PATH=/usr/local/lib:$DYLD_LIBRARY_PATH" >> $GITHUB_ENV
     - name: Check GmSSL version
       run: gmssl version
     - name: Install Python dependencies
