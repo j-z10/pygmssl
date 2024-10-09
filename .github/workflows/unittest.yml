@@ -57,6 +57,7 @@ jobs:
         elif [[ "$OSTYPE" == "darwin"* ]]; then
             echo "updating dyld shared cache..."
             sudo update_dyld_shared_cache
+            sudo gmssl version
         fi
     - name: Add nmake on windows
       if: ${{ startsWith(matrix.os, 'windows') }}
